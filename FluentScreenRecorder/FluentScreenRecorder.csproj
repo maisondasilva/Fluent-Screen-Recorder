@@ -11,13 +11,14 @@
     <AssemblyName>FluentScreenRecorder</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.19041.0</TargetPlatformVersion>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.22000.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
-    <PackageCertificateKeyFile>FluentScreenRecorder_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>
+    </PackageCertificateKeyFile>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
@@ -29,8 +30,7 @@
     <GenerateTestArtifacts>False</GenerateTestArtifacts>
     <AppInstallerUri>C:\Users\fedel\Downloads\appx</AppInstallerUri>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    <PackageCertificateThumbprint>
-    </PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>DBCA6C01813D5AB41C962EBFFDE543E597391479</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -51,31 +51,6 @@
     <NoWarn>;2008</NoWarn>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <ErrorReport>prompt</ErrorReport>
-    <Prefer32Bit>true</Prefer32Bit>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\ARM\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>ARM</PlatformTarget>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <ErrorReport>prompt</ErrorReport>
-    <Prefer32Bit>true</Prefer32Bit>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
-    <OutputPath>bin\ARM\Release\</OutputPath>
-    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
-    <Optimize>true</Optimize>
-    <NoWarn>;2008</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>ARM</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
@@ -147,14 +122,15 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="AppCenterSecret.cs" />
+    <Compile Include="Converters\SettingsConverters.cs" />
     <Compile Include="CustomMediaTransportControls.cs" />
-    <Compile Include="Dialogs\AboutDialog.xaml.cs">
-      <DependentUpon>AboutDialog.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Dialogs\ChangelogDialog.xaml.cs">
       <DependentUpon>ChangelogDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\InvertBoolConverter.cs" />
+    <Compile Include="Dialogs\LicensesDialog.xaml.cs">
+      <DependentUpon>LicensesDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\VideoInfoDialog.xaml.cs">
       <DependentUpon>VideoInfoDialog.xaml</DependentUpon>
     </Compile>
@@ -166,12 +142,18 @@
     <Compile Include="Themes\generic.xaml.cs">
       <DependentUpon>generic.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\RecorderHelper.cs" />
+    <Compile Include="ViewModels\SettingsViewModel.cs" />
+    <Compile Include="Models\MainModels.cs" />
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Views\PlayerPage.xaml.cs">
       <DependentUpon>PlayerPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SettingsPage.xaml.cs">
+      <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\VideoPreviewPage.xaml.cs">
       <DependentUpon>VideoPreviewPage.xaml</DependentUpon>
@@ -259,11 +241,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Dialogs\AboutDialog.xaml">
+    <Page Include="Dialogs\ChangelogDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Dialogs\ChangelogDialog.xaml">
+    <Page Include="Dialogs\LicensesDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -283,6 +265,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\SettingsPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\VideoPreviewPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -290,19 +276,19 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AppCenter.Analytics">
-      <Version>4.3.0</Version>
+      <Version>4.5.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AppCenter.Crashes">
-      <Version>4.3.0</Version>
+      <Version>4.5.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>6.2.12</Version>
+      <Version>6.2.14</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Toolkit.Uwp">
-      <Version>6.1.1</Version>
+      <Version>7.1.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.UI.Xaml">
-      <Version>2.7.0</Version>
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="NAudio">
       <Version>1.10.0</Version>
@@ -312,15 +298,17 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="ScreenSenderComponent">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\libs\ScreenSenderComponent\$(Platform)\ScreenSenderComponent.winmd</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\CaptureEncoder\CaptureEncoder.csproj">
       <Project>{7ffcaeb5-d8ba-49f4-b89f-7033e7a01447}</Project>
       <Name>CaptureEncoder</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.PowerToys.Settings.UI\Microsoft.PowerToys.Settings.UI.csproj">
+      <Project>{123d7523-1b05-4c05-a2fa-6a14314a16f3}</Project>
+      <Name>Microsoft.PowerToys.Settings.UI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ScreenSenderComponent\ScreenSenderComponent.vcxproj">
+      <Project>{9762cc81-d63d-4952-9cba-f812755c3444}</Project>
+      <Name>ScreenSenderComponent</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -351,4 +339,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
 </Project>

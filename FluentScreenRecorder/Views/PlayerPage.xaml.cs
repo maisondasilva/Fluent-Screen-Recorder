@@ -5,10 +5,12 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Media.Core;
 using Windows.Storage;
+using Windows.System;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 
 namespace FluentScreenRecorder.Views
@@ -19,13 +21,13 @@ namespace FluentScreenRecorder.Views
 
         public PlayerPage(StorageFile file = null)
         {
-            this.InitializeComponent();
+            InitializeComponent();
             SetupTitleBar();
         }
 
         public PlayerPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             SetupTitleBar();
         }
 
@@ -51,8 +53,10 @@ namespace FluentScreenRecorder.Views
             {
                 ExitOverlayIcon.Visibility = Visibility.Collapsed;
                 GoToOverlayIcon.Visibility = Visibility.Visible;
-                ToolTip toolTip = new ToolTip();
-                toolTip.Content = Strings.Resources.GoToOverlay;
+                ToolTip toolTip = new()
+                {
+                    Content = Strings.Resources.GoToOverlay
+                };
                 ToolTipService.SetToolTip(OverlayButton, toolTip);
                 AutomationProperties.SetName(OverlayButton, Strings.Resources.GoToOverlay);
             }
@@ -60,8 +64,10 @@ namespace FluentScreenRecorder.Views
             {
                 ExitOverlayIcon.Visibility = Visibility.Visible;
                 GoToOverlayIcon.Visibility = Visibility.Collapsed;
-                ToolTip toolTip = new ToolTip();
-                toolTip.Content = Strings.Resources.ExitOverlay;
+                ToolTip toolTip = new()
+                {
+                    Content = Strings.Resources.ExitOverlay
+                };
                 ToolTipService.SetToolTip(OverlayButton, toolTip);
                 AutomationProperties.SetName(OverlayButton, Strings.Resources.ExitOverlay);
             }
@@ -84,7 +90,7 @@ namespace FluentScreenRecorder.Views
         private async void CustomMediaTransportControls_Deleted(object sender, EventArgs e)
         {
             await videoFile.DeleteAsync();
-            this.Frame.Navigate(typeof(MainPage));            
+            Frame.Navigate(typeof(MainPage));            
         }
 
         private async void CustomMediaTransportControls_InfoTap(object sender, EventArgs e)
@@ -96,7 +102,7 @@ namespace FluentScreenRecorder.Views
             await dialog.ShowAsync();
         }
 
-        private  void CustomMediaTransportControls_Shared(object sender, EventArgs e)
+        private void CustomMediaTransportControls_Shared(object sender, EventArgs e)
         {
             DataTransferManager.ShowShareUI();
             DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
@@ -105,15 +111,23 @@ namespace FluentScreenRecorder.Views
 
         private void DataRequested(DataTransferManager sender, DataRequestedEventArgs e)
         {
-
             DataRequest request = e.Request;
             request.Data.Properties.Title = videoFile.Name;
             request.Data.SetStorageItems(new StorageFile[] { videoFile });
         }
 
-        private void Button_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private async void CustomMediaTransportControls_OpenFolder(object sender, EventArgs e)
         {
-            this.Frame.Navigate(typeof(MainPage));
+            var folderLocation = await KnownFolders.VideosLibrary.GetFolderAsync("Fluent Screen Recorder");
+            var options = new FolderLauncherOptions();
+            options.ItemsToSelect.Add(videoFile);
+            await Launcher.LaunchFolderAsync(folderLocation, options);
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (Frame.CanGoBack)
+                Frame.GoBack();
         }
 
         private async void OverlayButton_Click(object sender, RoutedEventArgs e)
@@ -121,14 +135,16 @@ namespace FluentScreenRecorder.Views
             if (ApplicationView.GetForCurrentView().ViewMode == ApplicationViewMode.Default)
             {
                 var preferences = ViewModePreferences.CreateDefault(ApplicationViewMode.CompactOverlay);
-                preferences.CustomSize = new Size(400, 260);
+                preferences.CustomSize = new Size(412, 260);
                 bool modeSwitched = await ApplicationView.GetForCurrentView().TryEnterViewModeAsync(ApplicationViewMode.CompactOverlay, preferences);
                 if (modeSwitched)
                 {
                     GoToOverlayIcon.Visibility = Visibility.Collapsed;
                     ExitOverlayIcon.Visibility = Visibility.Visible;
-                    ToolTip toolTip = new ToolTip();
-                    toolTip.Content = Strings.Resources.ExitOverlay;
+                    ToolTip toolTip = new()
+                    {
+                        Content = Strings.Resources.ExitOverlay
+                    };
                     ToolTipService.SetToolTip(OverlayButton, toolTip);
                     AutomationProperties.SetName(OverlayButton, Strings.Resources.ExitOverlay);
                 }
@@ -140,8 +156,10 @@ namespace FluentScreenRecorder.Views
                 {
                     ExitOverlayIcon.Visibility = Visibility.Collapsed;
                     GoToOverlayIcon.Visibility = Visibility.Visible;
-                    ToolTip toolTip = new ToolTip();
-                    toolTip.Content = Strings.Resources.GoToOverlay;
+                    ToolTip toolTip = new()
+                    {
+                        Content = Strings.Resources.GoToOverlay
+                    };
                     ToolTipService.SetToolTip(OverlayButton, toolTip);
                     AutomationProperties.SetName(OverlayButton, Strings.Resources.GoToOverlay);
                 }
@@ -151,6 +169,12 @@ namespace FluentScreenRecorder.Views
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             VideoPlayer.Source = null;
+        }
+
+        private void OnEscInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            if (Frame.CanGoBack)
+                Frame.GoBack();
         }
     }
 }

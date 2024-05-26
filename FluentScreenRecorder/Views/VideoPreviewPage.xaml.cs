@@ -1,112 +1,51 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.Media.Core;
 using Windows.Storage;
-using Windows.Storage.Pickers;
 using Windows.System;
 using Windows.UI.ViewManagement;
-using Windows.UI.WindowManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace FluentScreenRecorder.Views
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
-    public sealed partial class VideoPreviewPage : Page   
-    
+    public sealed partial class VideoPreviewPage : Page
     {
-        private StorageFile _tempFile;
+        public static VideoPreviewPage Current;
+        public static MediaSource Source;
+        public static StorageFile TempFile;
+        
+        public StorageFile _tempFile;
 
         public VideoPreviewPage(StorageFile file = null)
         {
-            this.InitializeComponent();
-            SetupTitleBar();
+            InitializeComponent();
+
+            Current = this;
 
             if (file != null)
             {
                 _tempFile = file;
+                TempFile = file;
             }                
             PreviewPlayer.Source = MediaSource.CreateFromStorageFile(file);
+            Source = (MediaSource)PreviewPlayer.Source;
 
+            ShowSaved();                       
             DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
             dataTransferManager.DataRequested += new TypedEventHandler<DataTransferManager, DataRequestedEventArgs>(DataRequested);            
         }
 
         public VideoPreviewPage()
         {
-            this.InitializeComponent();
-            SetupTitleBar();
-        }
+            InitializeComponent();
 
-        private void SetupTitleBar(CoreApplicationViewTitleBar coreAppTitleBar = null)
-        {
-            var coreTitleBar = coreAppTitleBar ?? CoreApplication.GetCurrentView().TitleBar;
-            coreTitleBar.ExtendViewIntoTitleBar = true;
-
-            // Get the size of the caption controls area and back button 
-            // (returned in logical pixels), and move your content around as necessary.
-            LeftPaddingColumn.Width = new GridLength(coreTitleBar.SystemOverlayLeftInset);
-            RightPaddingColumn.Width = new GridLength(coreTitleBar.SystemOverlayRightInset);
-
-            // Set XAML element as a draggable region.
-            Window.Current.SetTitleBar(UserLayout);
-
-            // Register a handler for when the size of the overlaid caption control changes.
-            // For example, when the app moves to a screen with a different DPI.
-            coreTitleBar.LayoutMetricsChanged += OnTitleBarLayoutMetricsChanged;
-
-            //Display the right icon for exiting/entering Overlay Mode
-            if (ApplicationView.GetForCurrentView().ViewMode == ApplicationViewMode.Default)
-            {
-                ExitOverlayIcon.Visibility = Visibility.Collapsed;
-                GoToOverlayIcon.Visibility = Visibility.Visible;
-                ToolTip toolTip = new ToolTip();
-                toolTip.Content = Strings.Resources.GoToOverlay;
-                ToolTipService.SetToolTip(OverlayButton, toolTip);
-                AutomationProperties.SetName(OverlayButton, Strings.Resources.GoToOverlay);
-            }
-            else
-            {
-                ExitOverlayIcon.Visibility = Visibility.Visible;
-                GoToOverlayIcon.Visibility = Visibility.Collapsed;
-                ToolTip toolTip = new ToolTip();
-                toolTip.Content = Strings.Resources.ExitOverlay;
-                ToolTipService.SetToolTip(OverlayButton, toolTip);
-                AutomationProperties.SetName(OverlayButton, Strings.Resources.ExitOverlay);
-            }
-        }
-
-        public void OnTitleBarLayoutMetricsChanged(CoreApplicationViewTitleBar sender, object args)
-        {
-            SetupTitleBar(sender);
-        }
-
-        private void DataRequested(DataTransferManager sender, DataRequestedEventArgs e)
-        {                       
-            if (_tempFile != null)
-            {
-                DataRequest request = e.Request;
-                request.Data.Properties.Title = _tempFile.Name;
-                request.Data.SetStorageItems(new StorageFile[] { _tempFile });
-            }
+            Current = this;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -114,73 +53,80 @@ namespace FluentScreenRecorder.Views
             if (e.Parameter is StorageFile file)
             {
                 _tempFile = file;
+                TempFile = file;
                 PreviewPlayer.Source = MediaSource.CreateFromStorageFile(file);
+                Source = (MediaSource)PreviewPlayer.Source;
 
                 DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
                 dataTransferManager.DataRequested += new TypedEventHandler<DataTransferManager, DataRequestedEventArgs>(DataRequested);
-            }
+            }            
             base.OnNavigatedTo(e);            
         }
-
-        private async void SaveButton_Click(object sender, RoutedEventArgs e)
+        
+        public async Task ShowSaved()
         {
-            await MainPage.Save(_tempFile);
-            this.Frame.Navigate(typeof(MainPage));
+            await Task.Delay(TimeSpan.FromSeconds(1.5));
+            SavedNotif.Show(4000);                
         }
 
-        private async void SaveAsButton_Click(object sender, RoutedEventArgs e)
+        private async void CustomMediaTransportControls_SaveAs(object sender, EventArgs e)
         {
-            await MainPage.SaveAs(_tempFile);
-            this.Frame.Navigate(typeof(MainPage));
+            if (_tempFile != null)
+               await MainPage.SaveAs(_tempFile);
+            else
+               await MainPage.SaveAs(TempFile);
         }
 
-        private void Share_Click(object sender, RoutedEventArgs e)
+        private void CustomMediaTransportControls_Share(object sender, EventArgs e)
         {
             DataTransferManager.ShowShareUI();
+            DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
+            dataTransferManager.DataRequested += new TypedEventHandler<DataTransferManager, DataRequestedEventArgs>(DataRequested);
         }
 
-        private async void Cancel_Click(object sender, RoutedEventArgs e)
+        private void DataRequested(DataTransferManager sender, DataRequestedEventArgs e)
         {
-            await MainPage.Delete(_tempFile);
-            this.Frame.Navigate(typeof(MainPage));
+            DataRequest request = e.Request;
+            request.Data.Properties.Title = _tempFile.Name;
+            request.Data.SetStorageItems(new StorageFile[] { _tempFile });
         }
 
-        private async void OverlayButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (ApplicationView.GetForCurrentView().ViewMode == ApplicationViewMode.Default)
-            {
-                var preferences = ViewModePreferences.CreateDefault(ApplicationViewMode.CompactOverlay);
-                preferences.CustomSize = new Size(400, 260);
-                bool modeSwitched = await ApplicationView.GetForCurrentView().TryEnterViewModeAsync(ApplicationViewMode.CompactOverlay, preferences);
-                if (modeSwitched)
-                {
-                    GoToOverlayIcon.Visibility = Visibility.Collapsed;
-                    ExitOverlayIcon.Visibility = Visibility.Visible;
-                    ToolTip toolTip = new ToolTip();
-                    toolTip.Content = Strings.Resources.ExitOverlay;
-                    ToolTipService.SetToolTip(OverlayButton, toolTip);
-                    AutomationProperties.SetName(OverlayButton, Strings.Resources.ExitOverlay);
-                }
-            }
-            else
-            {
-                bool modeSwitched = await ApplicationView.GetForCurrentView().TryEnterViewModeAsync(ApplicationViewMode.Default);
-                if (modeSwitched)
-                {
-                    ExitOverlayIcon.Visibility = Visibility.Collapsed;
-                    GoToOverlayIcon.Visibility = Visibility.Visible;
-                    ToolTip toolTip = new ToolTip();
-                    toolTip.Content = Strings.Resources.GoToOverlay;
-                    ToolTipService.SetToolTip(OverlayButton, toolTip);
-                    AutomationProperties.SetName(OverlayButton, Strings.Resources.GoToOverlay);
-                }
-            }
-        }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             PreviewPlayer.Source = null;
         }
+
+        private async void CustomMediaTransportControls_Delete(object sender, EventArgs e)
+        {
+            if (_tempFile != null)
+               await MainPage.Delete(_tempFile);
+            else
+               await MainPage.Delete(TempFile);
+            MainPage.Current.PreviewFrame.Visibility = Visibility.Collapsed;
+
+            PreviewPlayer.Source = null;
+
+            // To avoid re-navigating from settings page back to the
+            // video preview page when we already exited it.
+            Current = null;
+            TempFile = null;
+        }
+
+        private async void CustomMediaTransportControls_OpenFolder2(object sender, EventArgs e)
+        {
+            var folderLocation = await KnownFolders.VideosLibrary.GetFolderAsync("Fluent Screen Recorder");
+            var options = new FolderLauncherOptions();
+            options.ItemsToSelect.Add(_tempFile);
+            await Launcher.LaunchFolderAsync(folderLocation, options);
+        }
+
+        private async void HyperlinkButton_Click(object sender, RoutedEventArgs e)
+        {
+            var folderLocation = await KnownFolders.VideosLibrary.GetFolderAsync("Fluent Screen Recorder");
+            var options = new FolderLauncherOptions();
+            options.ItemsToSelect.Add(_tempFile);
+            await Launcher.LaunchFolderAsync(folderLocation, options);
+        }
     }
-       
 }

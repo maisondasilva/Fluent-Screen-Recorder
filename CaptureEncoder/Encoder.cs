@@ -23,12 +23,12 @@ namespace CaptureEncoder
             CreateMediaObjects();
         }
 
-        public IAsyncOperation<bool> EncodeAsync(IRandomAccessStream stream, uint width, uint height, uint bitrateInBps, uint frameRate, LoopbackAudioCapture loopbackAudioCapture)
+        public IAsyncOperation<bool> EncodeAsync(IRandomAccessStream stream, uint width, uint height, uint bitrateInBps, uint frameRate, LoopbackAudioCapture loopbackAudioCapture, bool withCursor = true)
         {
-            return EncodeInternalAsync(stream, width, height, bitrateInBps, frameRate, loopbackAudioCapture).AsAsyncOperation();
+            return EncodeInternalAsync(stream, width, height, bitrateInBps, frameRate, loopbackAudioCapture, withCursor).AsAsyncOperation();
         }
 
-        private async Task<bool> EncodeInternalAsync(IRandomAccessStream stream, uint width, uint height, uint bitrateInBps, uint frameRate, LoopbackAudioCapture loopbackAudioCapture)
+        private async Task<bool> EncodeInternalAsync(IRandomAccessStream stream, uint width, uint height, uint bitrateInBps, uint frameRate, LoopbackAudioCapture loopbackAudioCapture, bool withCursor = true)
         {
             if (!_isRecording)
             {
@@ -38,10 +38,12 @@ namespace CaptureEncoder
                     _device,
                     _captureItem,
                     _captureItem.Size,
-                    loopbackAudioCapture);
-                
+                    loopbackAudioCapture);               
+
                 using (_frameGenerator)
                 {
+                    await _frameGenerator.InitializeCapture(_captureItem.Size, loopbackAudioCapture, withCursor);
+
                     var encodingProfile = new MediaEncodingProfile();
                     encodingProfile.Container.Subtype = "MPEG4";
                     encodingProfile.Video.Subtype = "H264";
